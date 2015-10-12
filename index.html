@@ -1,0 +1,1260 @@
+<!-- Call this with anchor index.html#/plan/FIXME: demo_plan_nid -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Isaac10-UI Generic Demo</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://demo.isaac10.com/api/v1/isaac10_api.js"></script>
+    <script type="text/javascript" src="https://demo.isaac10.com/ui/isaac10_ui.js"></script>
+  </head>
+
+  <body>
+    <script>
+      $(document).ready(function() {
+        var isaac10 = new Isaac10('demo');
+        Isaac10UI.setup({
+          "isaac10Instance": isaac10,
+          "fetchTemplate"  : false,
+          "locale"         : "de"
+        }).render("#isaac10-ui");
+      });
+    </script>
+
+    <div id='isaac10-ui'>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/application">
+        {{outlet}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/index">
+        isaac10 UI works!
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/account">
+        {{t 'templates.account.headline'}}
+        {{div-showAccountDataPanel  accountData=model.accountData
+                                    newAccountData=model.newAccountData
+                                    newPassword=model.newPassword}}
+        {{#if model.billingData}}
+          {{div-showBillingDataPanel billingData=model.billingData
+                                    newBillingData=model.newBillingData
+                                    displayUstid=true}}
+        {{/if}}
+          {{#if model.paymentData}}
+          {{div-showPaymentDataPanel paymentData=model.paymentData
+                                    newPaymentData=model.newPaymentData
+                                    paymentDataTypes=model.paymentDataTypes
+                                    paymentDataLogos=model.paymentDataLogos}}
+        {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/add_subscription">
+        {{div-subscriptionForm registration=model
+                                displayMode='add'
+                                merchantMode=merchantMode
+                                submitAction=(action 'submit')}}
+        {{div-imprintFooter  plan=plan}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/bills">
+        {{t 'templates.bills.headline'}}
+        {{table-indexBills  billsWithDunnings=model}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/cancel_subscription">
+        {{t 'templates.cancelSubscription.headline'}}
+        {{div-cancelSubscriptionPanel registration=model
+                                      submitAction=(action 'submit')}}
+                                    </script>
+                                    <script type="text/x-handlebars"
+                                      data-template-name="isaac10-ui/confirm_subscription">
+        {{div-confirmSubscriptionForm registration=model
+                                      merchantMode=merchantMode
+                                      submitAction=(action 'submit')}}
+        {{#unless merchantMode}}
+            {{div-imprintFooter  plan=plan}}
+        {{/unless}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/edit_subscription">
+        {{t 'templates.editSubscription.headline'}}
+        {{div-editSubscriptionForm 
+                                    registration=model
+                                    submitAction=(action 'submit')}}
+        {{div-imprintFooter plan=plan}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/index_subscriptions">
+        {{t 'templates.subscriptions.headline'}}
+        {{table-indexSubscriptions subscriptions=model}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/register">
+        {{div-subscriptionForm registration=model
+                                displayMode='register'
+                                merchantMode=merchantMode
+                                submitAction=(action 'submit')}}
+        {{#unless merchantMode}}
+          {{div-imprintFooter plan=plan}}
+        {{/unless}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/show_subscription">
+        {{t 'templates.showSubscription.headline'}}
+        {{div-showSubscriptionPanel subscription=subscription}}
+        {{#if displayUpgradeDowngrade}}
+          {{div-upgradeDowngradePanel subscription=subscription
+                                      transitions=transitions}}
+        {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/subscription_not_allowed">
+        {{t "templates.subscriptionNotAllowed.infoText"}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/thank_you">
+        {{div-thankYouPanel thankYou=model
+                            merchantMode=merchantMode
+                            operationMode=operationMode}}
+                          </script>
+                          <script type="text/x-handlebars"
+                            data-template-name="isaac10-ui/upgrade_downgrade_subscription">
+        {{t 'templates.upgradeDowngradeSubscription.headline'}}
+        {{div-subscriptionForm registration=model
+                                displayMode='upgrade_downgrade'
+                                merchantMode=merchantMode
+                                submitAction=(action 'submit')}}
+        {{div-imprintFooter plan=plan}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/a-billDownloadLink">
+        <a {{action 'download'}} href="#">
+          {{downloadLinkText}}
+        </a>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-accountDataFields">
+          <label for="emailField">
+            {{t 'components.divAccountDataFields.emailLabel'}}
+          </label>
+          {{input type="text" value=email id="emailField"}}
+          {{#if errors.email}}
+            {{errors.email}}
+          {{/if}}
+        </script>
+        <script type="text/x-handlebars"
+          data-template-name="isaac10-ui/components/div-billingDataFields">
+        {{!-- gender --}}
+          <label for="genderField">
+            {{t "components.divBillingDataFields.genderLabel"}}
+          </label>
+          {{input-select content=genderSelectOptions
+                        bindTo=gender
+                        id="genderField"}}
+          {{#if errors.gender}}
+            <span>{{errors.gender}}</span>
+          {{/if}}
+            {{!-- title --}}
+          <label for="titleField">
+            {{t "components.divBillingDataFields.titleLabel"}}
+          </label>
+          {{input type="text" value=title
+                              id="titleField"}}
+          {{#if errors.title}}
+            <span>{{errors.title}}</span>
+          {{/if}}
+            {{!-- first name --}}
+          <label for="firstNameField">
+            {{t "components.divBillingDataFields.firstNameLabel"}}
+          </label>
+          {{input type="text" value=firstName
+                              id="firstNameField"}}
+          {{#if errors.firstName}}
+            <span>{{errors.firstName}}</span>
+          {{/if}}
+            {{!-- last name --}}
+          <label for="lastNameField">
+            {{t "components.divBillingDataFields.lastNameLabel"}}
+          </label>
+          {{input type="text" value=lastName
+                              id="lastNameField"}}
+          {{#if errors.lastName}}
+            <span >{{errors.lastName}}</span>
+          {{/if}}
+            {{!-- company --}}
+          <label for="companyField">
+            {{t "components.divBillingDataFields.companyLabel"}}
+          </label>
+          {{input type="text" value=company
+                              id="companyField"}}
+          {{#if errors.company}}
+            <span>{{errors.company}}</span>
+          {{/if}}
+            {{!-- street --}}
+          <label for="streetField">
+            {{t "components.divBillingDataFields.streetLabel"}}
+          </label>
+          {{input type="text" value=street
+                              id="streetField"}}
+          {{#if errors.street}}
+            <span>{{errors.street}}</span>
+          {{/if}}
+            {{!-- zip --}}
+          <label for="zipField">
+            {{t "components.divBillingDataFields.zipLabel"}}
+          </label>
+          {{input type="text" value=zip
+                              id="zipField"}}
+          {{#if errors.zip}}
+            <span>{{errors.zip}}</span>
+          {{/if}}
+            {{!-- city --}}
+          <label for="cityField">
+            {{t "components.divBillingDataFields.cityLabel"}}
+          </label>
+          {{input type="text" value=city
+                              id="cityField"}}
+          {{#if errors.city}}
+            <span>{{errors.city}}</span>
+          {{/if}}
+            {{!-- country --}}
+        {{#if allowedCountries}}
+            <label for="countryField">
+              {{t "components.divBillingDataFields.countryLabel"}}
+            </label>
+            {{input-select content=allowedCountries
+                          bindTo=country
+                          id="countryField"}}
+            {{#if errors.country}}
+              <span>{{errors.country}}</span>
+            {{/if}}
+              {{else}}
+          <label for="countryField">
+            {{t "components.divBillingDataFields.countryLabel"}}
+          </label>
+          {{input type="text" value=country
+                              id="countryField"
+                              readonly=true}}
+        {{/if}}
+          {{!-- ustid --}}
+          <label for="ustidField">
+            {{t "components.divBillingDataFields.ustidLabel"}}
+          </label>
+          {{input type="text" value=ustid
+                              id="ustidField"}}
+          {{#if errors.ustid}}
+            <span>{{errors.ustid}}</span>
+          {{/if}}
+        </script>
+        <script type="text/x-handlebars"
+          data-template-name="isaac10-ui/components/div-cancelSubscriptionPanel">
+        {{#link-to 'show_subscription' subscription.id}}
+          {{t 'defaults.backToSubscriptionLink'}}
+        {{/link-to}}
+        {{t 'components.divCancelSubscriptionPanel.infoText'}}
+        <button {{action 'submit'}}>
+          {{t 'components.divCancelSubscriptionPanel.submitButton'}}
+        </button>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-confirmSubscriptionForm">
+        {{#unless merchantMode}}
+          <img  src="{{plan.logoUrl}}">
+        {{/unless}}
+          {{plan.productName}}
+        {{plan.planName}}
+        {{#if showBillingInterval}}
+          {{t 'components.divConfirmSubscriptionForm.billingIntervalHeadline'}}
+          {{table-showBillingInterval subscription=subscription}}
+          <a href="#" {{action 'editBillingInterval'}}>{{t 'defaults.edit'}}</a>
+        {{/if}}
+          {{#if editBillingInterval}}
+          {{t 'components.divConfirmSubscriptionForm.billingIntervalHeadline'}}
+          {{table-nextBillingIntervalFields subscription=subscription}}
+          {{div-pricingInfo plan=plan}}
+          <button {{action 'updateBillingInterval'}}>
+            {{t 'defaults.save'}}
+          </button>
+          <button {{action 'cancelEditBillingInterval'}}>
+            {{t 'defaults.cancel'}}
+          </button>
+        {{/if}}
+          {{#if showAdditions}}
+          {{t 'components.divConfirmSubscriptionForm.additionsHeadline'}}
+          {{#if hasSubscribedAdditions}}
+            <ul>
+              {{#each subscribedAdditions as |addition|}}
+                <li>
+                  {{addition.name}}
+                  {{#if addition.quantifiable}}
+                    ({{addition.nextQuantity}}x)
+                  {{/if}}
+                    </li>
+              {{/each}}
+            </ul>
+          {{else}}
+            {{t 'components.divConfirmSubscriptionForm.noSubscribedAdditions'}}
+          {{/if}}
+            <a href="#" {{action 'editAdditions'}}>{{t 'defaults.edit'}}</a>
+        {{/if}}
+          {{#if editAdditions}}
+          {{t 'components.divConfirmSubscriptionForm.additionsHeadline'}}
+          {{table-newAdditionsFields subscription=subscription}}
+          {{div-pricingInfo plan=plan}}
+          <button {{action 'updateAdditions'}}>
+            {{t 'defaults.save'}}
+          </button>
+          <button {{action 'cancelEditAdditions'}}>
+            {{t 'defaults.cancel'}}
+          </button>
+        {{/if}}
+          {{#if showBillingData}}
+          {{t 'components.divConfirmSubscriptionForm.billingDataHeadline'}}
+          {{table-showBillingData billingData=billingData
+                                  displayUstid=displayUstid}}
+          <a href="#" {{action 'editBillingData'}}>{{t 'defaults.edit'}}</a>
+        {{/if}}
+          {{#if editBillingData}}
+          {{t 'components.divConfirmSubscriptionForm.billingDataHeadline'}}
+          {{div-billingDataFields billingData=billingData
+                                  allowedCountries=allowedCountries}}
+          <button {{action 'updateBillingData'}}>
+            {{t 'defaults.save'}}
+          </button>
+          <button {{action 'cancelEditBillingData'}}>
+            {{t 'defaults.cancel'}}
+          </button>
+        {{/if}}
+          {{#if showPaymentData}}
+          {{t 'components.divConfirmSubscriptionForm.paymentDataHeadline'}}
+          {{table-showPaymentData paymentData=paymentData}}
+          <a href="#" {{action 'editPaymentData'}}>{{t 'defaults.edit'}}</a>
+        {{/if}}
+          {{#if editPaymentData}}
+          {{t "components.divConfirmSubscriptionForm.paymentDataHeadline"}}
+          {{div-paymentDataFields paymentData=paymentData
+                                  paymentDataTypes=paymentDataTypes
+                                  paymentDataLogos=paymentDataLogos}}
+          <button {{action 'updatePaymentData'}}>
+            {{t 'defaults.save'}}
+          </button>
+          <button {{action 'cancelEditPaymentData'}}>
+            {{t 'defaults.cancel'}}
+          </button>
+        {{/if}}
+          {{#unless merchantMode}}
+          {{div-legalPanel plan=plan}}
+        {{/unless}}
+          {{div-priceSummary registration=registration}}
+        <button {{action 'submit'}}>
+          {{t 'components.divConfirmSubscriptionForm.submitButton'}}
+        </button>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-couponFields">
+        <div class="{{if isValid 'has-success has-feedback'}}
+                    {{if isInvalid 'has-error'}}">
+          <label >
+            {{t "components.divCouponFields.couponCodePlaceholder"}}
+          </label>
+          {{input type="text" id="couponCodeField"
+                              placeholder=couponCodePlaceholder
+                              value=couponCode}}
+          {{#if isValid}}
+            {{message}}
+          {{/if}}
+            {{#if isInvalid}}
+            {{error}}
+          {{/if}}
+            </div>
+          <button {{action "check"}}>
+            {{t "components.divCouponFields.checkCodeButton"}}
+          </button>
+        </script>
+        <script type="text/x-handlebars"
+          data-template-name="isaac10-ui/components/div-editSubscriptionForm">
+      {{#link-to 'show_subscription' subscription.id}}
+        {{t 'defaults.backToSubscriptionLink'}}
+      {{/link-to}}
+      <h1 >{{productName}}</h1>
+      <h2 >{{planName}}</h2>
+      {{#if showNextBillingInterval}}
+      {{table-nextBillingIntervalFields 
+                                        subscription=subscription}}
+      {{div-pricingInfo  plan=plan}}
+      {{/if}}
+        {{#if displayEditAdditionsTable}}
+      <h2 >
+        {{t 'components.divEditSubscriptionForm.additionsHeadline'}}
+      </h2>
+      {{table-editAdditionsFields 
+                                  subscription=subscription}}
+      {{div-pricingInfo  plan=plan}}
+        {{t 'components.divEditSubscriptionForm.additionsInfo'}}
+      {{/if}}
+        {{div-legalPanel  plan=plan}}
+      {{div-priceSummary  registration=registration}}
+      <button {{action 'submit'}} >
+        {{t 'components.divEditSubscriptionForm.submitButton'}}
+      </button>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-imprintFooter">
+        {{imprintText}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-legalPanel">
+        {{conditionsInfo}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-merchantOptionsFields">
+      <label for="doubleOptInField">
+        {{input type="checkbox" checked=doubleOptIn id="doubleOptInField"}}
+        {{t "templates.merchantOptions.doubleOptInLabel"}}
+      </label>
+        {{t "templates.merchantOptions.doubleOptInInfoText"}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-passwordFields">
+      <label for="passwordField">
+        {{t "components.divPasswordFields.passwordLabel"}}
+      </label>
+      {{input type="password" 
+                              value=password
+                              id="passwordField"}}
+        {{t "components.divPasswordFields.passwordHint"}}
+      {{#if errors.password}}
+        {{errors.password}}
+      {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-paymentDataFields">
+      {{#each logos as |logo|}}
+        <img src="{{logo.src}}" alt="{{logo.alt}}">
+      {{/each}}
+      {{#each allowedPaymentMethods as |method|}}
+          <label>
+            {{input-radio-button name="paymentMethod"
+                                  bindTo=paymentMethod
+                                  value=method.value
+                                  id=method.id}}
+            {{method.label}}
+          </label>
+      {{/each}}
+      {{#if paymentData.errors.paymentMethod}}
+        {{paymentData.errors.paymentMethod}}
+      {{/if}}
+        <hr>
+      {{partial partialName}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-priceSummary">
+        <h2 >{{t "components.divPriceSummary.headline"}}</h2>
+      <table >
+      <thead>
+        <tr>
+          <th></th>
+          <th>
+            {{t "components.divPriceSummary.oneTime"}}
+          </th>
+          <th>
+            {{pricePerHeadline}}
+          </th>
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <th>{{vatLabel}}</th>
+          <th>{{totalOneTimeVatHtml}}</th>
+          <th>{{totalRegularVatHtml}}</th>
+        </tr>
+        <tr>
+          <th>{{totalPriceLabel}}</th>
+          <th>{{totalOneTimePriceHtml}}</th>
+          <th>{{totalRegularPriceHtml}}</th>
+        </tr>
+      </tfoot>
+      <tbody>
+        {{#each tableRows as |tableRow|}}
+          <tr>
+            <td>{{tableRow.name}}</td>
+            <td>{{tableRow.oneTimePrice}}</td>
+            <td>{{tableRow.regularPrice}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+      </table>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-pricingInfo">
+        {{pricingInfo}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-showAccountDataPanel">
+        <h2>{{t 'components.divShowAccountDataPanel.headline'}}</h2>
+      {{table-showAccountData 
+                            accountData=accountData}}
+      {{#if editAccountData}}
+        {{div-accountDataFields  accountData=newAccountData}}
+        <button  {{action 'updateAccountData'}}>
+          {{t 'defaults.save'}}
+        </button>
+        <button  {{action 'cancelEditAccountData'}}>
+          {{t 'defaults.cancel'}}
+        </button>
+      {{else}}
+        <a href="#" {{action 'editAccountData'}}>
+          {{t 'components.divShowAccountDataPanel.editAccountDataLink'}}
+        </a>
+      {{/if}}
+        {{#if editPassword}}
+        {{div-passwordFields  passwordModel=newPassword}}
+        <button  {{action 'updatePassword'}}>
+          {{t 'defaults.save'}}
+        </button>
+        <button  {{action 'cancelEditPassword'}}>
+          {{t 'defaults.cancel'}}
+        </button>
+      {{else}}
+        <a href="#" {{action 'editPassword'}}>
+          {{t 'components.divShowAccountDataPanel.editPasswordLink'}}
+        </a>
+      {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-showBillingDataPanel">
+        <h2>{{t 'components.divShowBillingDataPanel.headline'}}</h2>
+      {{table-showBillingData 
+                            billingData=billingData
+                            displayUstid=displayUstid}}
+      {{#if editBillingData}}
+        {{div-billingDataFields 
+                                billingData=newBillingData
+                                allowedCountries=false}}
+        <button  {{action 'updateBillingData'}}>
+          {{t 'defaults.save'}}
+        </button>
+        <button  {{action 'cancelEditBillingData'}}>
+          {{t 'defaults.cancel'}}
+        </button>
+      {{else}}
+        <a href="#" {{action 'editBillingData'}}>
+          {{t 'components.divShowBillingDataPanel.editBillingDataLink'}}
+        </a>
+      {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-showPaymentDataPanel">
+        <h2>{{t 'components.divShowPaymentDataPanel.headline'}}</h2>
+      {{table-showPaymentData 
+                            paymentData=paymentData}}
+      {{#if editPaymentData}}
+        {{div-paymentDataFields 
+                                paymentData=newPaymentData
+                                paymentDataTypes=paymentDataTypes
+                                paymentDataLogos=paymentDataLogos}}
+        <button  {{action 'updatePaymentData'}}>
+          {{t 'defaults.save'}}
+        </button>
+        <button  {{action 'cancelEditPaymentData'}}>
+          {{t 'defaults.cancel'}}
+        </button>
+      {{else}}
+        <a href="#" {{action 'editPaymentData'}}>
+          {{t 'components.divShowPaymentDataPanel.editPaymentDataLink'}}
+        </a>
+      {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-showSubscriptionPanel">
+        <h1 >{{statusHtml}}</h1>
+      {{#link-to 'index_subscriptions'}}
+        {{t 'defaults.backToSubscriptionsLink'}}
+      {{/link-to}}
+      <h2>{{productName}} {{planName}}</h2>
+      {{#if canEdit}}
+        {{#link-to 'edit_subscription' subscription.id}}
+        {{!--                          ^^^^^^^^^^^^^^^
+          Passing the id (instead of the model itself) will make the model hook in
+          the route fire -- which is necessary because we need additional data for
+          editing the subscription. --}}
+          {{t 'components.divShowSubscriptionPanel.editLink'}}
+        {{/link-to}}
+        &nbsp;&nbsp;&nbsp;
+      {{/if}}
+        {{#if canCancel}}
+        {{#link-to 'cancel_subscription' subscription.id}}
+          {{t 'components.divShowSubscriptionPanel.cancelLink'}}
+        {{/link-to}}
+      {{/if}}
+        <table >
+      <tbody>
+        <tr>
+          <td>
+            <b>{{t 'components.divShowSubscriptionPanel.beginsAtLabel'}}</b>
+          </td>
+          <td>{{beginsAtHtml}}</td>
+        </tr>
+        <tr>
+          <td>
+            <b>{{t 'components.divShowSubscriptionPanel.termEndsAtLabel'}}</b>
+          </td>
+          <td>{{termEndsAtHtml}}</td>
+        </tr>
+        <tr>
+          <td>
+            <b>{{t 'components.divShowSubscriptionPanel.priceLabel'}}</b>
+          </td>
+          <td>{{currentRegularPriceHtml}}</td>
+        </tr>
+        {{#if displayNextRegularPrice}}
+          <tr>
+            <td>
+              <b>{{t 'components.divShowSubscriptionPanel.nextPriceLabel'}}</b>
+            </td>
+            <td>{{nextRegularPriceHtml}} {{nextRegularPriceBeginsAtHtml}}</td>
+          </tr>
+        {{/if}}
+          </tbody>
+      </table>
+      {{#if showAdditions}}
+      <br>
+      <h2>{{t 'components.divShowSubscriptionPanel.additionsHeadline'}}</h2>
+      {{table-showAdditions  additions=additions}}
+      {{/if}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-subscriptionForm">
+        {{#if showLogo}}
+      <img  src="{{plan.logoUrl}}">
+      {{/if}}
+        <h1 >{{plan.productName}}</h1>
+      <h2 >{{plan.planName}}</h2>
+      {{#if showNextBillingInterval}}
+      {{table-nextBillingIntervalFields 
+                                        subscription=subscription}}
+      {{div-pricingInfo  plan=plan}}
+      {{/if}}
+        {{#if showAdditions}}
+      <h2 >
+        {{t "components.divSubscriptionForm.additionsHeadline"}}
+      </h2>
+      {{table-newAdditionsFields 
+                                  subscription=subscription}}
+      {{div-pricingInfo  plan=plan}}
+      {{/if}}
+        {{#if showAccountData}}
+      <h2 >
+        {{t "components.divSubscriptionForm.accountHeadline"}}
+      </h2>
+      {{div-accountDataFields  accountData=registration}}
+      {{div-passwordFields  passwordModel=registration}}
+      {{/if}}
+        {{#if showBillingData}}
+      <h2 >
+        {{t "components.divSubscriptionForm.billingDataHeadline"}}
+      </h2>
+      {{div-billingDataFields 
+                              billingData=billingData
+                              allowedCountries=allowedCountries}}
+      {{/if}}
+        {{#if showPaymentData}}
+      <h2 >
+        {{t "components.divSubscriptionForm.paymentDataHeadline"}}
+      </h2>
+      {{div-paymentDataFields 
+                              paymentData=paymentData
+                              paymentDataTypes=paymentDataTypes
+                              paymentDataLogos=paymentDataLogos}}
+      {{/if}}
+        {{#if showCoupon}}
+        <h2 >
+          {{t "components.divSubscriptionForm.couponHeadline"}}
+        </h2>
+        {{div-couponFields  coupon=coupon}}
+      {{/if}}
+        {{#if merchantMode}}
+      <h2 >
+        {{t "components.divSubscriptionForm.merchantOptionsHeadline"}}
+      </h2>
+      {{div-merchantOptionsFields  registration=registration}}
+      {{else}}
+      {{div-legalPanel  plan=plan}}
+      {{/if}}
+        {{div-priceSummary  registration=registration}}
+      <button {{action "submit"}} >
+        {{t "components.divSubscriptionForm.submitButton"}}
+      </button>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-thankYouPanel">
+        {{#unless merchantMode}}
+      <img  src="{{logoUrl}}">
+      {{/unless}}
+        <h1 >{{productName}}</h1>
+      <h2 >{{planName}}</h2>
+      {{infoText}}
+      <a  href="{{successRedirectUrl}}">
+        {{t 'components.divThankYouPanel.successLink'}}
+      </a>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/div-upgradeDowngradePanel">
+        <h2>{{t 'components.divUpgradeDowngradePanel.headline'}}</h2>
+      {{table-upgradeDowngrade 
+                              subscription=subscription
+                              transitions=transitions}}
+      {{t 'components.divUpgradeDowngradePanel.hintText'}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/input-select">
+        {{#each content as |content|}}
+      {{input-selectOption content=content
+                            optionValue=optionValue
+                            optionLabel=optionLabel
+                            selectedValue=bindTo}}
+      {{/each}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/input-selectOption">
+        {{label}}
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-newAdditionsFields">
+        <tbody>
+      {{#each additions as |addition|}}
+        {{tr-newAddition addition=addition}}
+      {{/each}}
+      {{#if errors.additions}}
+        <tr >
+          <td colspan="4">
+              {{errors.additions}}
+          </td>
+        </tr>
+      {{/if}}
+        </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-indexBills">
+        <thead>
+      <tr>
+        <th>{{t 'components.tableIndexBills.billNumber'}}</th>
+        <th>{{t 'components.tableIndexBills.billDate'}}</th>
+        <th>{{t 'components.tableIndexBills.amount'}}</th>
+        <th>{{t 'components.tableIndexBills.download'}}</th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each billsWithDunnings as |billWithDunnings|}}
+        {{tr-showBill billWithDunnings=billWithDunnings}}
+      {{else}}
+        <tr><td colspan="4">{{t 'components.tableIndexBills.noBills'}}</td></tr>
+      {{/each}}
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-indexSubscriptions">
+        <thead>
+      <tr>
+        <th>
+          {{t 'components.tableIndexSubscriptions.product'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.plan'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.beginsAt'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.termEndsAt'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.billingInterval'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.price'}}
+        </th>
+        <th>
+          {{t 'components.tableIndexSubscriptions.status'}}
+        </th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      {{#each subscriptions as |subscription|}}
+        {{tr-showSubscription subscription=subscription}}
+      {{else}}
+          {{t 'components.tableIndexSubscriptions.noSubscriptions'}}
+      {{/each}}
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-editAdditionsFields">
+        <tbody>
+      {{#each additions as |addition|}}
+        {{tr-editAddition addition=addition}}
+      {{/each}}
+      {{#if errors.additions}}
+        <tr >
+          <td colspan="5">
+              {{errors.additions}}
+          </td>
+        </tr>
+      {{/if}}
+        </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-nextBillingIntervalFields">
+        <tbody>
+      {{#each prices as |price|}}
+        <tr>
+          <td>
+            <label >
+              {{input-radioButton name="nextBillingInterval"
+                                  bindTo=nextBillingInterval
+                                  value=price.value
+                                  id=price.id}}
+              {{price.label}}
+            </label>
+          </td>
+          <td>
+            {{#if price.isCurrent}}
+              {{t "components.tableNextBillingIntervalFields.isCurrent"}}
+            {{/if}}
+              </td>
+          <td>{{price.amount}}</td>
+        </tr>
+      {{/each}}
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showAccountData">
+        <tbody>
+      <tr>
+        <td>
+          <b>{{t "components.tableShowAccountData.emailLabel"}}</b>
+        </td>
+        <td>
+          {{email}}
+        </td>
+      </tr>
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showAdditions">
+        <tbody>
+      {{#each additions as |addition|}}
+        {{tr-showAddition addition=addition}}
+      {{/each}}
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showBillingData">
+        <tbody>
+      {{#if billingData}}
+        {{#if company}}
+          <tr>
+            <td>
+              <b>{{t "components.tableShowBillingData.companyLabel"}}</b>
+            </td>
+            <td>
+              {{company}}
+            </td>
+          </tr>
+        {{/if}}
+          <tr>
+          <td>
+            <b>{{t "components.tableShowBillingData.fullNameLabel"}}</b>
+          </td>
+          <td>{{fullName}}</td>
+        </tr>
+        <tr>
+          <td>
+            <b>{{t "components.tableShowBillingData.addressLabel"}}</b>
+          </td>
+          <td>{{fullAddress}}</td>
+        </tr>
+        {{#if displayUstid}}
+          <tr>
+            <td>
+              <b>{{t "components.tableShowBillingData.ustidLabel"}}</b>
+            </td>
+            <td>{{ustid}}</td>
+          </tr>
+        {{/if}}
+          {{else}}
+        <tr>
+          <td>
+            {{t "components.tableShowBillingData.noBillingDataInfo"}}
+          </td>
+        </tr>
+      {{/if}}
+        </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showBillingInterval">
+        <tbody>
+      <tr>
+        <td>
+          <b>{{nextBillingInterval}}</b>
+        </td>
+      </tr>
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showCoupon">
+        <tbody>
+      <tr>
+        {{#if isEmpty}}
+          <td>
+            {{t "components.tableShowCoupon.noCoupon"}}
+          </td>
+        {{else}}
+          <td>
+            <b>{{couponCode}}</b>
+          </td>
+          <td>
+            {{message}}
+          </td>
+        {{/if}}
+          </tr>
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-showPaymentData">
+        <tbody>
+      {{#if paymentData}}
+        {{partial partialName}}
+      {{else}}
+        <tr>
+          <td>
+            {{t 'components.showPaymentData.noPaymentDataInfo'}}
+          </td>
+        </tr>
+      {{/if}}
+        </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/table-upgradeDowngrade">
+        <tbody>
+      {{#each transitions as |transition|}}
+        {{tr-upgradeDowngrade subscription=subscription transition=transition}}
+      {{/each}}
+      </tbody>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/tr-showBill">
+        <td>{{activeBillNumber}}</td>
+      <td>{{activeBillDateHtml}}</td>
+      <td>{{activeBillAmountHtml}}</td>
+      <td>
+      {{#each billWithDunnings.bills as |bill|}}
+        {{a-billDownloadLink bill=bill}}
+        <br>
+      {{/each}}
+      </td>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/tr-showSubscription">
+        <td>{{productName}}</td>
+      <td>{{planName}}</td>
+      <td>{{beginsAtHtml}}</td>
+      <td>{{termEndsAtHtml}}</td>
+      <td>{{billingIntervalHtml}}</td>
+      <td>{{priceHtml}}</td>
+      <td>{{statusHtml}}</td>
+      <td>
+      {{#link-to 'show_subscription' id}}
+        {{t 'components.trShowSubscription.showLink'}}
+      {{/link-to}}
+      </td>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/tr-editAddition">
+        <td>{{statusIconHtml}}</td>
+      <td>{{name}}<br>{{statusHint}}</td>
+      {{#if isQuantifiable}}
+      <td>
+        {{t 'components.trEditAddition.quantityLabel'}}
+      </td>
+      <td>
+        {{input type='number' min='0' value=nextQuantity
+        }}
+      </td>
+      {{else}}
+      {{#if isOngoing}}
+        <td>
+          <label for="{{checkboxId}}">
+            {{input type='checkbox' id=checkboxId checked=toCancelCheckbox}}
+          </label>
+        </td>
+        <td>
+          <label for="{{checkboxId}}">
+            {{t 'components.trEditAddition.checkboxLabel.cancel'}}
+          </label>
+        </td>
+      {{else if isCanceled}}
+        <td>
+          <label for="{{checkboxId}}">
+            {{input type='checkbox' id=checkboxId checked=toUncancelCheckbox}}
+          </label>
+        </td>
+        <td>
+          <label for="{{checkboxId}}">
+            {{t 'components.trEditAddition.checkboxLabel.uncancel'}}
+          </label>
+        </td>
+      {{else}}
+        <td>
+          <label for="{{checkboxId}}">
+            {{input type='checkbox' id=checkboxId checked=toBookCheckbox}}
+          </label>
+        </td>
+        <td>
+          <label for="{{checkboxId}}">
+            {{t 'components.trEditAddition.checkboxLabel.book'}}
+          </label>
+        </td>
+      {{/if}}
+        {{/if}}
+          <td>{{basePriceHtml}}</td>
+        </script>
+        <script type="text/x-handlebars"
+          data-template-name="isaac10-ui/components/tr-newAddition">
+        <td>
+      <label for="{{checkboxId}}">
+        {{input type="checkbox" checked=toBookCheckbox id=checkboxId}}
+        {{name}}
+      </label>
+      </td>
+      <td>
+      {{#if isQuantifiable}}
+        {{t "components.trNewAddition.quantityLabel"}}
+      {{/if}}
+        </td>
+      <td>
+      {{#if isQuantifiable}}
+        {{input type="number" min="1" value=nextQuantity disabled=notToBook
+        }}
+      {{/if}}
+        </td>
+      <td>
+      {{regularBasePriceHtml}}
+      </td>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/tr-showAddition">
+        <td>{{statusIconHtml}}</td>
+      <td><b>{{name}}</b></td>
+      <td>{{statusHint}}</td>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/components/tr-upgradeDowngrade">
+        <td>
+      <b>{{name}}</b>
+      </td>
+      <td>
+      {{#if isCurrent}}
+        <span >{{chooseLinkText}}</span>
+      {{else}}
+        {{#link-to 'upgrade_downgrade_subscription' subscription.id nid
+                    class=chooseLinkClass}}
+                      {{chooseLinkText}}
+        {{/link-to}}
+      {{/if}}
+        </td>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_invoice">
+          <tr>
+      <td>
+        <b>{{t 'partials.paymentData.paymentMethodLabel'}}</b>
+      </td>
+      <td>
+        {{t 'partials.paymentData.invoice.method'}}
+      </td>
+      </tr>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_invoice_fields">
+          <div data-section="payment-data-fields-invoice">
+            <label>{{t 'partials.paymentData.invoice.infoText'}}</label>
+          </div>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_elv_dtaus">
+          <tr>
+      <td>
+        <b>{{t "partials.paymentData.paymentMethodLabel"}}</b>
+      </td>
+      <td>
+        {{t "partials.paymentData.elv_dtaus.method"}}
+      </td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.elv_dtaus.addrNameLabel"}}</b></td>
+      <td>{{paymentData.addrName}}</td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.elv_dtaus.bankIbanLabel"}}</b></td>
+      <td>{{paymentData.bankIban}}</td>
+      </tr>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_elv_dtaus_fields">
+          <div data-section="payment-data-fields-elv_dtaus">
+            <label for="addrNameField">
+              {{t "partials.paymentData.elv_dtaus.addrNameLabel"}}*
+            </label>
+            {{input type="text" 
+                                value=paymentData.addrName
+                                id="addrNameField"}}
+            {{#if paymentData.errors.addrName}}
+              {{paymentData.errors.addrName}}
+            {{/if}}
+              <label for="bankIbanField">
+              {{t "partials.paymentData.elv_dtaus.bankIbanLabel"}}*
+            </label>
+            {{input type="text" 
+                                value=paymentData.bankIban
+                                id="bankIbanField"}}
+            {{#if paymentData.errors.bankIban}}
+              {{paymentData.errors.bankIban}}
+            {{/if}}
+              </div>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_cc_paymill">
+          <tr>
+      <td>
+        <b>{{t "partials.paymentData.paymentMethodLabel"}}</b>
+      </td>
+      <td>
+        {{t "partials.paymentData.cc_paymill.method"}}
+      </td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.cc_paymill.cardHolderLabel"}}</b></td>
+      <td>{{paymentData.cardHoldername}}</td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.cc_paymill.cardTypeLabel"}}</b></td>
+      <td>{{paymentData.cardType}}</td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.cc_paymill.cardNumberLabel"}}</b></td>
+      <td>XXXX-XXXX-XXXX-{{paymentData.cardLast4}}</td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.cc_paymill.cardExpireDateLabel"}}</b></td>
+      <td>{{paymentData.cardExpireMonth}}/{{paymentData.cardExpireYear}}</td>
+      </tr>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_cc_paymill_fields">
+          <div data-section="payment-data-fields-cc_paymill">
+          <div class="
+                    {{if paymentData.errors.cardHoldername 'has-error'}}">
+            <label for="cardHoldernameField">
+              {{t "partials.paymentData.cc_paymill.cardHolderLabel"}}*
+            </label>
+            {{input type="text" id="cardHolderField"
+                                value=paymentData.cardHolder
+            }}
+            {{#if paymentData.errors.cardHoldername}}
+              {{paymentData.errors.cardHoldername}}
+            {{/if}}
+              </div>
+      {{#if paymentData.errors.paymentDataBase}}
+              {{paymentData.errors.paymentDataBase}}
+      {{/if}}
+        <label for="cardNumberField">
+              {{t "partials.paymentData.cc_paymill.cardNumberLabel"}}*
+            </label>
+            {{input type="text" id="cardNumberField"
+                                value=paymentData.cardNumber
+            }}
+            <label for="cardCvcField">
+              {{t "partials.paymentData.cc_paymill.cardCvcLabel"}}*
+            </label>
+            {{input type="text" id="cardCvcField"
+                                value=paymentData.cardCvc
+            }}
+            <label for="cardExpireMonthField">
+              {{t "partials.paymentData.cc_paymill.cardExpireDateLabel"}}*
+            </label>
+            {{input-select content=cardExpireMonthOptions
+                            bindTo=paymentData.cardExpireMonth
+            }}
+            <label>&nbsp;</label>
+            {{input-select content=cardExpireYearOptions
+                            bindTo=paymentData.cardExpireYear
+            }}
+          </div>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_elv_paymill">
+          <tr>
+      <td>
+        <b>{{t "partials.paymentData.paymentMethodLabel"}}</b>
+      </td>
+      <td>
+        {{t "partials.paymentData.elv_paymill.method"}}
+      </td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.elv_paymill.addrNameLabel"}}</b></td>
+      <td>{{paymentData.addrName}}</td>
+      </tr>
+      <tr>
+      <td><b>{{t "partials.paymentData.elv_paymill.bankIbanLabel"}}</b></td>
+      <td>{{paymentData.bankIban}}</td>
+      </tr>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_elv_paymill_fields">
+          <div data-section="payment-data-fields-elv_paymill">
+      {{#if paymentData.errors.paymentDataBase}}
+            {{paymentData.errors.paymentDataBase}}
+      {{/if}}
+        <label for="addrNameField">
+              {{t "partials.paymentData.elv_paymill.addrNameLabel"}}*
+            </label>
+            {{input type="text" 
+                                value=paymentData.addrName
+                                id="addrNameField"}}
+            <label for="bankIbanField">
+              {{t "partials.paymentData.elv_paymill.bankIbanLabel"}}*
+            </label>
+            {{input type="text" 
+                                value=paymentData.addrName
+                                id="bankIbanField"}}
+        </div>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_paypal">
+          <tr>
+      <td>
+        <b>{{t 'partials.paymentData.paymentMethodLabel'}}</b>
+      </td>
+      <td>
+        {{t 'partials.paymentData.paypal.method'}}
+      </td>
+      </tr>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_paypal_fields">
+          <div data-section="payment-data-fields-paypal">
+      <label>{{t 'partials.paymentData.paypal.infoText'}}</label>
+      </div>
+      </script>
+      <script type="text/x-handlebars"
+        data-template-name="isaac10-ui/payment_data/_none_fields">
+          <div data-section="payment-data-fields-none">
+              {{t 'partials.paymentData.none.infoText'}}
+          </div>
+      </script>
+    </div>
+  </body>
+</html>
